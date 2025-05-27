@@ -1,0 +1,5 @@
+# Ignorar todos los archivos .doc y .docx en cualquier subcarpeta
+**/*.doc
+**/*.docx
+**/*.ppt
+**/*.pptx

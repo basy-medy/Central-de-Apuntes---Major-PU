@@ -1,0 +1,36 @@
+name: Convert Office Files to PDF
+
+on:
+  push:
+    paths:
+      - '**.doc'
+      - '**.docx'
+      - '**.ppt'
+      - '**.pptx'
+
+jobs:
+  convert-to-pdf:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install LibreOffice
+        run: sudo apt-get update && sudo apt-get install -y libreoffice
+
+      - name: Convert files to PDF
+        run: |
+          mkdir -p pdfs
+          for file in $(find . -type f \( -iname "*.doc" -o -iname "*.docx" -o -iname "*.ppt" -o -iname "*.pptx" \)); do
+            libreoffice --headless --convert-to pdf "$file" --outdir pdfs
+          done
+
+      - name: Commit and push PDFs
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          cp -r pdfs/* .
+          git add *.pdf
+          git commit -m "Auto-convert Office files to PDF [skip ci]" || echo "No changes to commit"
+          git push

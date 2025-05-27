@@ -1,4 +1,4 @@
-name: Convert Office Files to PDF
+name: Convert Office Files to PDF and Delete Originals
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - '**.pptx'
 
 jobs:
-  convert-to-pdf:
+  convert-and-replace:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,18 +19,17 @@ jobs:
       - name: Install LibreOffice
         run: sudo apt-get update && sudo apt-get install -y libreoffice
 
-      - name: Convert files to PDF
+      - name: Convert and replace files
         run: |
-          mkdir -p pdfs
           for file in $(find . -type f \( -iname "*.doc" -o -iname "*.docx" -o -iname "*.ppt" -o -iname "*.pptx" \)); do
-            libreoffice --headless --convert-to pdf "$file" --outdir pdfs
+            libreoffice --headless --convert-to pdf "$file" --outdir "$(dirname "$file")"
+            rm "$file"
           done
 
-      - name: Commit and push PDFs
+      - name: Commit and push changes
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          cp -r pdfs/* .
-          git add *.pdf
-          git commit -m "Auto-convert Office files to PDF [skip ci]" || echo "No changes to commit"
+          git add -A
+          git commit -m "Convert Office files to PDF and delete originals [skip ci]" || echo "No changes to commit"
           git push
